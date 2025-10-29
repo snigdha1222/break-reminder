@@ -1,53 +1,38 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKER_IMAGE = "Snigdha1222/break-reminder"
-        DOCKER_TAG = "latest"
-    }
-
     stages {
-        stage('Checkout Code') {
+        stage("Build Docker image") {
             steps {
-                checkout scm
+                echo "Build Docker image"
+                bat "docker build -t break-reminder:v1 ."
             }
         }
-
-        stage('Build Docker Image') {
+        stage("Docker Login") {
             steps {
-                script {
-                    echo "🔨 Building Docker image..."
-                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
-                }
+                bat "docker login -u snigdha1222 -p snigdha@08"
             }
         }
-
-        stage('Push Image to DockerHub') {
+        stage("push Docker image to docker hub") {
             steps {
-                script {
-                    echo "📦 Pushing Docker image to Docker Hub..."
-                    withCredentials([usernamePassword(
-                        credentialsId: 'jenkins-push',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )]) {
-                        sh '''
-                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                            docker logout
-                        '''
-                    }
-                }
+                echo "push Docker image to docker hub"
+                bat "docker tag break-reminder:v1 snigdha1222/break-reminder:t8"
+                bat "docker push snigdha1222/break-reminder:t8"
+            }
+        }
+        stage("Deploy to kubernetes") {
+            steps {
+                echo "Deploy to kubernetes"
+                bat "kubectl apply -f deployment.yaml --validate=false"
+                bat "kubectl apply -f service.yaml"
             }
         }
     }
-
     post {
         success {
-            echo '🎉 Image pushed successfully to Docker Hub!'
+            echo "Pipeline executed successfully"
         }
         failure {
-            echo '❌ Something went wrong during the pipeline.'
+            echo "pipeline failed. Please check the logs"
         }
     }
 }
