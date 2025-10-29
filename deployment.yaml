@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: break-reminder
-          image: yourdockerhubusername/break-reminder:latest
+          image: Snigdha1222/break-reminder:latest
           ports:
             - containerPort: 5000
           readinessProbe:
