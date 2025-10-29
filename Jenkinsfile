@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "snigdha1222/break-reminder"
+        DOCKER_IMAGE = "Snigdha1222/break-reminder"
+        DOCKER_TAG = "latest"
     }
 
     stages {
@@ -15,25 +16,27 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE}:latest ."
+                    echo "🔨 Building Docker image..."
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
                 }
             }
         }
 
         stage('Push Image to DockerHub') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'jenkins-push',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker tag ${DOCKER_IMAGE}:latest ${DOCKER_IMAGE}:v1
-                        docker push ${DOCKER_IMAGE}:latest
-                        docker push ${DOCKER_IMAGE}:v1
-                        docker logout
-                    '''
+                script {
+                    echo "📦 Pushing Docker image to Docker Hub..."
+                    withCredentials([usernamePassword(
+                        credentialsId: 'jenkins-push',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )]) {
+                        sh '''
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                            docker logout
+                        '''
+                    }
                 }
             }
         }
