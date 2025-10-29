@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: break-reminder-deployment
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: break-reminder
@@ -14,12 +14,6 @@ spec:
     spec:
       containers:
         - name: break-reminder
-          image: Snigdha1222/break-reminder:latest
+          image: snigdha1222/break-reminder:t8 # use your Docker Hub image
           ports:
             - containerPort: 5000
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 5000
-            initialDelaySeconds: 5
-            periodSeconds: 5
